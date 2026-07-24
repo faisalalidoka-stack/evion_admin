@@ -42,8 +42,8 @@ dependencies:
   firebase_storage:
   firebase_messaging:
 
-  flutter_map:
-  latlong2:
+  flutter_map: ^8.2.1
+  latlong2: ^0.10.1
 
   fl_chart:
 

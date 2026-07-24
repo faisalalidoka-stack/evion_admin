@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../../core/widgets/page_placeholder.dart';
-import '../../features/dashboard/pages/dashboard_page.dart';
+import '../../features/dashboards/pages/dashboard_page.dart';
 
 class AppRouter {
   static final router = GoRouter(

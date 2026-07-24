@@ -4,21 +4,46 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../logic/fleet_cubit.dart';
 import '../models/bus_model.dart';
 
-class AddBusDialog extends StatefulWidget {
-  const AddBusDialog({super.key});
+class EditBusDialog extends StatefulWidget {
+  final BusModel bus;
+
+  const EditBusDialog({
+    super.key,
+    required this.bus,
+  });
 
   @override
-  State<AddBusDialog> createState() => _AddBusDialogState();
+  State<EditBusDialog> createState() => _EditBusDialogState();
 }
 
-class _AddBusDialogState extends State<AddBusDialog> {
+class _EditBusDialogState extends State<EditBusDialog> {
   final _formKey = GlobalKey<FormState>();
 
-  final vehicleController = TextEditingController();
-  final registrationController = TextEditingController();
-  final routeController = TextEditingController();
-  final driverController = TextEditingController();
-  final capacityController = TextEditingController();
+  late final TextEditingController vehicleController;
+  late final TextEditingController registrationController;
+  late final TextEditingController routeController;
+  late final TextEditingController driverController;
+  late final TextEditingController capacityController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    vehicleController =
+        TextEditingController(text: widget.bus.vehicleNumber);
+
+    registrationController =
+        TextEditingController(text: widget.bus.registration);
+
+    routeController =
+        TextEditingController(text: widget.bus.route);
+
+    driverController =
+        TextEditingController(text: widget.bus.driver);
+
+    capacityController =
+        TextEditingController(text: widget.bus.capacity.toString());
+  }
 
   @override
   void dispose() {
@@ -33,47 +58,42 @@ class _AddBusDialogState extends State<AddBusDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Add Bus"),
+      title: const Text("Edit Bus"),
       content: SizedBox(
         width: 500,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 TextFormField(
                   controller: vehicleController,
-                  decoration: const InputDecoration(
-                    labelText: "Vehicle Number",
-                  ),
+                  decoration:
+                  const InputDecoration(labelText: "Vehicle Number"),
                   validator: (v) =>
                   v == null || v.isEmpty ? "Required" : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: registrationController,
-                  decoration: const InputDecoration(
-                    labelText: "Registration",
-                  ),
+                  decoration:
+                  const InputDecoration(labelText: "Registration"),
                   validator: (v) =>
                   v == null || v.isEmpty ? "Required" : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: routeController,
-                  decoration: const InputDecoration(
-                    labelText: "Route",
-                  ),
+                  decoration:
+                  const InputDecoration(labelText: "Route"),
                   validator: (v) =>
                   v == null || v.isEmpty ? "Required" : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: driverController,
-                  decoration: const InputDecoration(
-                    labelText: "Driver",
-                  ),
+                  decoration:
+                  const InputDecoration(labelText: "Driver"),
                   validator: (v) =>
                   v == null || v.isEmpty ? "Required" : null,
                 ),
@@ -81,9 +101,8 @@ class _AddBusDialogState extends State<AddBusDialog> {
                 TextFormField(
                   controller: capacityController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: "Capacity",
-                  ),
+                  decoration:
+                  const InputDecoration(labelText: "Capacity"),
                   validator: (v) {
                     if (v == null || v.isEmpty) {
                       return "Required";
@@ -106,19 +125,19 @@ class _AddBusDialogState extends State<AddBusDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text("Cancel"),
         ),
-        ElevatedButton(
+        FilledButton(
           onPressed: () {
             if (!_formKey.currentState!.validate()) return;
 
-            context.read<FleetCubit>().addBus(
+            context.read<FleetCubit>().updateBus(
               BusModel(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                id: widget.bus.id,
                 vehicleNumber: vehicleController.text.trim(),
                 registration: registrationController.text.trim(),
                 route: routeController.text.trim(),
                 driver: driverController.text.trim(),
                 capacity: int.parse(capacityController.text),
-                status: "Offline",
+                status: widget.bus.status,
               ),
             );
 
@@ -126,12 +145,12 @@ class _AddBusDialogState extends State<AddBusDialog> {
 
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text("Bus added successfully"),
+                content: Text("Bus updated successfully"),
               ),
             );
           },
-          child: const Text("Save"),
-        ),
+          child: const Text("Update"),
+        )
       ],
     );
   }

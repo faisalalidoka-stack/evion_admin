@@ -42,4 +42,33 @@ class FleetRepository {
   void addBus(BusModel bus) {
     _buses.add(bus);
   }
+  void updateBus(BusModel updatedBus) {
+    final index = _buses.indexWhere((e) => e.id == updatedBus.id);
+
+    if (index == -1) return;
+
+    _buses[index] = updatedBus;
+  }
+  void assignDriver(
+      String busId,
+      String driverId,
+      String driverName,
+      ) {
+    final index = _buses.indexWhere((e) => e.id == busId);
+
+    if (index == -1) return;
+
+    final bus = _buses[index];
+
+    _buses[index] = BusModel(
+      id: bus.id,
+      vehicleNumber: bus.vehicleNumber,
+      registration: bus.registration,
+      route: bus.route,
+      capacity: bus.capacity,
+      status: bus.status,
+      driverId: driverId,
+      driver: driverName,
+    );
+  }
 }

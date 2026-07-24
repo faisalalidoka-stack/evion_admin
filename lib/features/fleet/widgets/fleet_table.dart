@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../logic/fleet_cubit.dart';
 import '../models/bus_model.dart';
 
+import 'edit_bus_dialog.dart';
+import 'delete_bus_dialog.dart';
+
 class FleetTable extends StatelessWidget {
   final List<BusModel> buses;
 
@@ -61,19 +64,31 @@ class FleetTable extends StatelessWidget {
                       IconButton(
                         tooltip: "Edit",
                         onPressed: () {
-                          // Next batch
+                          showDialog(
+                            context: context,
+                            builder: (_) => BlocProvider.value(
+                              value: context.read<FleetCubit>(),
+                              child: EditBusDialog(bus: bus),
+                            ),
+                          );
                         },
                         icon: const Icon(Icons.edit),
                       ),
                       IconButton(
                         tooltip: "Delete",
                         onPressed: () {
-                          context
-                              .read<FleetCubit>()
-                              .deleteBus(bus.id);
+                          showDialog(
+                            context: context,
+                            builder: (_) => BlocProvider.value(
+                              value: context.read<FleetCubit>(),
+                              child: DeleteBusDialog(
+                                bus: bus,
+                              ),
+                            ),
+                          );
                         },
                         icon: const Icon(
-                          Icons.delete,
+                          Icons.delete_outline,
                           color: Colors.red,
                         ),
                       ),

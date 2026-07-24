@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/widgets/page_placeholder.dart';
 import '../../features/dashboards/pages/dashboard_page.dart';
+import '../../features/fleet/pages/fleet_page.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -9,7 +10,7 @@ class AppRouter {
       GoRoute(path: '/', builder: (_, __) => const DashboardPage()),
       GoRoute(
         path: '/fleet',
-        builder: (_, __) => const PagePlaceholder(title: "Fleet"),
+        builder: (_, __) => const FleetPage(),
       ),
       GoRoute(
         path: '/drivers',

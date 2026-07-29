@@ -8,7 +8,9 @@ build/
 firebase-debug.log
 
 # Node
+
 node_modules/
+package.json
 package-lock.json
 
 # IDE

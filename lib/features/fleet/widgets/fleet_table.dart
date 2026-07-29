@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../drivers/logic/driver_cubit.dart';
 import '../logic/fleet_cubit.dart';
 import '../models/bus_model.dart';
 
+import 'assign_driver_dialog.dart';
 import 'edit_bus_dialog.dart';
 import 'delete_bus_dialog.dart';
+import 'update_status_dialog.dart';
+
+import 'status_selector_dialog.dart';
 
 class FleetTable extends StatelessWidget {
   final List<BusModel> buses;
@@ -15,17 +20,29 @@ class FleetTable extends StatelessWidget {
     required this.buses,
   });
 
-  Color statusColor(String status) {
+  Color statusColor(BusStatus status) {
     switch (status) {
-      case "Running":
+      case BusStatus.running:
         return Colors.green;
-      case "Boarding":
+      case BusStatus.boarding:
         return Colors.orange;
-      case "Offline":
+      case BusStatus.available:
+        return Colors.blue;
+      case BusStatus.maintenance:
+        return Colors.amber;
+      case BusStatus.offline:
         return Colors.red;
-      default:
-        return Colors.grey;
     }
+  }
+
+  void _openStatusDialog(BuildContext context, BusModel bus) {
+    showDialog(
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: context.read<FleetCubit>(),
+        child: UpdateStatusDialog(bus: bus),
+      ),
+    );
   }
 
   @override
@@ -48,19 +65,60 @@ class FleetTable extends StatelessWidget {
               cells: [
                 DataCell(Text(bus.vehicleNumber)),
                 DataCell(Text(bus.registration)),
-                DataCell(Text(bus.driver)),
-                DataCell(Text(bus.route)),
+                DataCell(Text(bus.driverName)),
+                DataCell(Text(bus.routeName)),
                 DataCell(Text(bus.capacity.toString())),
                 DataCell(
-                  Chip(
-                    label: Text(bus.status),
-                    backgroundColor:
-                    statusColor(bus.status).withOpacity(.15),
+                  InkWell(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<FleetCubit>(),
+                          child: StatusSelectorDialog(
+                            bus: bus,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Chip(
+                      label: Text(bus.status),
+                      avatar: CircleAvatar(
+                        radius: 5,
+                        backgroundColor: statusColor(bus.status),
+                      ),
+                      backgroundColor: statusColor(bus.status).withOpacity(.15),
+                    ),
                   ),
                 ),
                 DataCell(
                   Row(
                     children: [
+                      IconButton(
+                        tooltip: "Update Status",
+                        onPressed: () => _openStatusDialog(context, bus),
+                        icon: const Icon(Icons.flag_outlined),
+                      ),
+                      IconButton(
+                        tooltip: "Assign Driver",
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => MultiBlocProvider(
+                              providers: [
+                                BlocProvider.value(
+                                  value: context.read<FleetCubit>(),
+                                ),
+                                BlocProvider.value(
+                                  value: context.read<DriverCubit>(),
+                                ),
+                              ],
+                              child: AssignDriverDialog(bus: bus),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.person_add_alt),
+                      ),
                       IconButton(
                         tooltip: "Edit",
                         onPressed: () {

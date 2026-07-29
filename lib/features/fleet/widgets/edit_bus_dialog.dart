@@ -36,10 +36,10 @@ class _EditBusDialogState extends State<EditBusDialog> {
         TextEditingController(text: widget.bus.registration);
 
     routeController =
-        TextEditingController(text: widget.bus.route);
+        TextEditingController(text: widget.bus.routeName);
 
     driverController =
-        TextEditingController(text: widget.bus.driver);
+        TextEditingController(text: widget.bus.driverName);
 
     capacityController =
         TextEditingController(text: widget.bus.capacity.toString());
@@ -130,14 +130,13 @@ class _EditBusDialogState extends State<EditBusDialog> {
             if (!_formKey.currentState!.validate()) return;
 
             context.read<FleetCubit>().updateBus(
-              BusModel(
-                id: widget.bus.id,
+              widget.bus.copyWith(
                 vehicleNumber: vehicleController.text.trim(),
                 registration: registrationController.text.trim(),
-                route: routeController.text.trim(),
-                driver: driverController.text.trim(),
                 capacity: int.parse(capacityController.text),
-                status: widget.bus.status,
+                routeName: routeController.text.trim(),
+                driverName: driverController.text.trim(),
+                updatedAt: DateTime.now(),
               ),
             );
 

@@ -1,28 +1,34 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/driver_model.dart';
 
 class DriverRepository {
-  final List<DriverModel> _drivers = [
-    DriverModel(
-      id: "1",
-      name: "John Ssemanda",
-      phone: "0700000001",
-      assigned: false,
-    ),
-    DriverModel(
-      id: "2",
-      name: "Sarah Namutebi",
-      phone: "0700000002",
-      assigned: false,
-    ),
-    DriverModel(
-      id: "3",
-      name: "David Kato",
-      phone: "0700000003",
-      assigned: true,
-    ),
-  ];
+  DriverRepository({
+    FirebaseFirestore? firestore,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  List<DriverModel> getAvailableDrivers() {
-    return _drivers.where((e) => !e.assigned).toList();
+  final FirebaseFirestore _firestore;
+
+  CollectionReference<Map<String, dynamic>> get _drivers =>
+      _firestore.collection("drivers");
+
+  Stream<List<DriverModel>> streamDrivers() {
+    return _drivers.snapshots().map(
+          (snapshot) => snapshot.docs
+          .map((doc) => DriverModel.fromMap(doc.id, doc.data()))
+          .toList(),
+    );
+  }
+
+  Future<void> addDriver(DriverModel driver) {
+    return _drivers.doc(driver.id).set(driver.toMap());
+  }
+
+  Future<void> updateDriver(DriverModel driver) {
+    return _drivers.doc(driver.id).update(driver.toMap());
+  }
+
+  Future<void> deleteDriver(String id) {
+    return _drivers.doc(id).delete();
   }
 }

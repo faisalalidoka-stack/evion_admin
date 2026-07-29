@@ -10,4 +10,5 @@ class SidebarItem {
     required this.icon,
     required this.route,
   });
+
 }

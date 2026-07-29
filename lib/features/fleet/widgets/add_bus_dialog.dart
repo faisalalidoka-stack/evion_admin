@@ -110,15 +110,19 @@ class _AddBusDialogState extends State<AddBusDialog> {
           onPressed: () {
             if (!_formKey.currentState!.validate()) return;
 
+            final now = DateTime.now();
+
             context.read<FleetCubit>().addBus(
               BusModel(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                id: now.millisecondsSinceEpoch.toString(),
                 vehicleNumber: vehicleController.text.trim(),
                 registration: registrationController.text.trim(),
-                route: routeController.text.trim(),
-                driver: driverController.text.trim(),
                 capacity: int.parse(capacityController.text),
-                status: "Offline",
+                routeName: routeController.text.trim(),
+                driverName: driverController.text.trim(),
+                status: BusStatus.offline,
+                createdAt: now,
+                updatedAt: now,
               ),
             );
 

@@ -3,44 +3,53 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/widgets/admin_shell.dart';
 import '../logic/fleet_cubit.dart';
 import '../logic/fleet_state.dart';
+import '../models/bus_model.dart';
+import '../widgets/fleet_stats_row.dart';
 import '../widgets/fleet_table.dart';
 import '../widgets/add_bus_dialog.dart';
+import '../widgets/fleet_search_bar.dart';
+import '../widgets/fleet_statistics.dart';
+import '../widgets/fleet_status_filters.dart';
 
-class FleetPage extends StatelessWidget {
+
+
+
+class FleetPage extends StatefulWidget {
   const FleetPage({super.key});
 
-  // Fixed: Moved the helper method to the correct class level
-  void _showDeleteDialog(BuildContext context, String busId) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Delete Bus"),
-        content: const Text(
-          "Are you sure you want to delete this bus?",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red), // Optional: Make it visually a delete button
-            onPressed: () {
-              context.read<FleetCubit>().deleteBus(busId);
-              Navigator.pop(context);
-            },
-            child: const Text("Delete"),
-          ),
-        ],
-      ),
-    );
+  @override
+  State<FleetPage> createState() => _FleetPageState();
+}
+
+class _FleetPageState extends State<FleetPage> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
     return AdminShell(
-      child: BlocBuilder<FleetCubit, FleetState>(
+      child: BlocConsumer<FleetCubit, FleetState>(
+        listenWhen: (previous, current) =>
+        previous.errorMessage != current.errorMessage &&
+            current.errorMessage != null,
+        listener: (context, state) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red.shade700,
+              content: Text("Error: ${state.errorMessage}"),
+              duration: const Duration(seconds: 6),
+            ),
+          );
+        },
         builder: (context, state) {
+          final visibleBuses = state.filteredBuses;
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -54,6 +63,13 @@ class FleetPage extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
+                  OutlinedButton.icon(
+                    onPressed: () =>
+                        context.read<FleetCubit>().seedSampleData(),
+                    icon: const Icon(Icons.cloud_upload_outlined),
+                    label: const Text("Seed Sample Data"),
+                  ),
+                  const SizedBox(width: 12),
                   ElevatedButton.icon(
                     onPressed: () {
                       showDialog(
@@ -67,21 +83,91 @@ class FleetPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20),
-              TextField(
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search),
-                  hintText: "Search buses...",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
+              FleetStatsRow(state: state),
               const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: context.read<FleetCubit>().setSearchQuery,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.search),
+                        hintText:
+                        "Search by vehicle, registration, driver or route...",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<BusStatus>(
+                      initialValue: state.statusFilter,
+                      decoration: InputDecoration(
+                        labelText: "Status",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      items: [
+                        const DropdownMenuItem<BusStatus>(
+                          value: null,
+                          child: Text("All Statuses"),
+                        ),
+                        ...BusStatus.values.map(
+                              (status) => DropdownMenuItem<BusStatus>(
+                            value: status,
+                            child: Text(status.label),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) =>
+                          context.read<FleetCubit>().setStatusFilter(value),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<bool>(
+                      initialValue: state.activeFilter,
+                      decoration: InputDecoration(
+                        labelText: "Active",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem<bool>(
+                          value: null,
+                          child: Text("All Buses"),
+                        ),
+                        DropdownMenuItem<bool>(
+                          value: true,
+                          child: Text("Active Only"),
+                        ),
+                        DropdownMenuItem<bool>(
+                          value: false,
+                          child: Text("Inactive Only"),
+                        ),
+                      ],
+                      onChanged: (value) =>
+                          context.read<FleetCubit>().setActiveFilter(value),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "${visibleBuses.length} of ${state.buses.length} buses",
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 12),
               Expanded(
                 child: FleetTable(
-                  buses: state.buses,
-                  // Note: You will need to pass `_showDeleteDialog` into your FleetTable
-                  // or pass a callback down so the table rows can trigger it.
+
+                  buses: visibleBuses,
                 ),
               ),
             ],
@@ -91,3 +177,15 @@ class FleetPage extends StatelessWidget {
     );
   }
 }
+FleetStatistics(
+buses: state.buses,
+),
+
+const SizedBox(height: 20),
+
+FleetStatusFilters(
+selected: context.read<FleetCubit>().currentFilter,
+onSelected: context.read<FleetCubit>().filterByStatus,
+),
+
+const SizedBox(height: 20),

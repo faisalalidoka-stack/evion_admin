@@ -10,45 +10,29 @@ class FleetStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 5,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 2.0,
-      children: [
-        SummaryCard(
-          title: "Total Buses",
-          value: state.totalBuses.toString(),
-          icon: Icons.directions_bus,
-          color: Colors.blueGrey,
-        ),
-        SummaryCard(
-          title: "Active Buses",
-          value: state.activeBusesCount.toString(),
-          icon: Icons.check_circle_outline,
-          color: Colors.blue,
-        ),
-        SummaryCard(
-          title: "Running",
-          value: state.runningBusesCount.toString(),
-          icon: Icons.route,
-          color: Colors.green,
-        ),
-        SummaryCard(
-          title: "Maintenance",
-          value: state.maintenanceBusesCount.toString(),
-          icon: Icons.build_outlined,
-          color: Colors.amber,
-        ),
-        SummaryCard(
-          title: "Offline",
-          value: state.offlineBusesCount.toString(),
-          icon: Icons.power_off,
-          color: Colors.red,
-        ),
-      ],
+    final stats = [
+      ('Total Buses', state.totalBuses, Icons.directions_bus, Colors.blueGrey),
+      ('Active Buses', state.activeBusesCount, Icons.check_circle_outline, Colors.blue),
+      ('Running', state.runningBusesCount, Icons.route, Colors.green),
+      ('Maintenance', state.maintenanceBusesCount, Icons.build_outlined, Colors.amber),
+      ('Offline', state.offlineBusesCount, Icons.power_off, Colors.red),
+    ];
+
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      children: stats.map((s) {
+        return SizedBox(
+          width: 220,
+          height: 110,
+          child: SummaryCard(
+            title: s.$1,
+            value: s.$2.toString(),
+            icon: s.$3,
+            color: s.$4,
+          ),
+        );
+      }).toList(),
     );
   }
 }

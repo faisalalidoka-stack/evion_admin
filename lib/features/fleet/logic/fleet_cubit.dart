@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/constants/bus_status.dart';
 import '../data/fleet_repository.dart';
 import '../models/bus_model.dart';
 import 'fleet_state.dart';
-import 'dart:async';
 
 class FleetCubit extends Cubit<FleetState> {
   final FleetRepository repository;
@@ -15,66 +17,37 @@ class FleetCubit extends Cubit<FleetState> {
   void loadFleet() {
     _subscription?.cancel();
 
-    emit(
-      state.copyWith(
-        loading: true,
-      ),
-    );
+    emit(state.copyWith(loading: true));
 
-    _subscription =
-        repository.streamBuses().listen((buses) {
-          emit(
-            state.copyWith(
-              loading: false,
-              buses: buses,
-              filteredBuses: buses,
-            ),
-          );
-        });
-  }
-
-  Future<void> refresh() async {
-    try {
-      emit(
-        state.copyWith(
-          buses: repository.getBuses(),
-          filteredBuses: repository.getBuses(),
-        ),
-      );
-    } catch (e) {
-      emit(state.copyWith(errorMessage: e.toString()));
-    }
-    void updateStatus(
-        String busId,
-        String status,
-        ) {
-      repository.updateStatus(
-        busId,
-        status,
-      );
-
-      refresh();
-    }
-
+    _subscription = repository.streamBuses().listen((buses) {
+      emit(state.copyWith(loading: false, buses: buses));
+    }, onError: (e) {
+      emit(state.copyWith(loading: false, errorMessage: e.toString()));
+    });
   }
 
   Future<void> addBus(BusModel bus) async {
-    await repository.addBus(bus);
+    try {
+      await repository.addBus(bus);
+    } catch (e) {
+      emit(state.copyWith(errorMessage: e.toString()));
+    }
   }
 
   Future<void> updateBus(BusModel bus) async {
-    await repository.updateBus(bus);
+    try {
+      await repository.updateBus(bus);
+    } catch (e) {
+      emit(state.copyWith(errorMessage: e.toString()));
+    }
   }
 
   Future<void> deleteBus(String id) async {
-    await repository.deleteBus(id);
-  }
-
-  Future<void> updateStatus(
-      String id,
-      String status,
-      ) async {
-    await repository.updateStatus(id, status);
+    try {
+      await repository.deleteBus(id);
+    } catch (e) {
+      emit(state.copyWith(errorMessage: e.toString()));
+    }
   }
 
   Future<void> assignDriver({
@@ -84,7 +57,6 @@ class FleetCubit extends Cubit<FleetState> {
   }) async {
     try {
       await repository.assignDriver(busId, driverId, driverName);
-      await refresh();
     } catch (e) {
       emit(state.copyWith(errorMessage: e.toString()));
     }
@@ -93,7 +65,6 @@ class FleetCubit extends Cubit<FleetState> {
   Future<void> updateStatus(String busId, BusStatus status) async {
     try {
       await repository.updateStatus(busId, status);
-      await refresh();
     } catch (e) {
       emit(state.copyWith(errorMessage: e.toString()));
     }
@@ -102,7 +73,6 @@ class FleetCubit extends Cubit<FleetState> {
   Future<void> seedSampleData() async {
     try {
       await repository.seedSampleDataIfEmpty();
-      await refresh();
     } catch (e) {
       emit(state.copyWith(errorMessage: e.toString()));
     }
@@ -127,51 +97,10 @@ class FleetCubit extends Cubit<FleetState> {
           : state.copyWith(activeFilter: active),
     );
   }
-  void search(String query) {
-    if (query.trim().isEmpty) {
-      emit(
-        state.copyWith(
-          filteredBuses: state.buses,
-        ),
-      );
-      return;
-    }
 
-    final q = query.toLowerCase();
-
-    final results = state.buses.where((bus) {
-      return bus.vehicleNumber.toLowerCase().contains(q) ||
-          bus.registration.toLowerCase().contains(q) ||
-          bus.driver.toLowerCase().contains(q) ||
-          bus.route.toLowerCase().contains(q);
-    }).toList();
-
-    emit(
-      state.copyWith(
-        filteredBuses: results,
-      ),
-    );
-  }
-  String currentFilter = "All";
-  void filterByStatus(String status) {
-    currentFilter = status;
-
-    if (status == "All") {
-      emit(
-        state.copyWith(
-          filteredBuses: state.buses,
-        ),
-      );
-
-      return;
-    }
-
-    emit(
-      state.copyWith(
-        filteredBuses: state.buses
-            .where((e) => e.status == status)
-            .toList(),
-      ),
-    );
+  @override
+  Future<void> close() {
+    _subscription?.cancel();
+    return super.close();
   }
 }

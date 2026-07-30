@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/widgets/admin_shell.dart';
+import '../../../core/constants/bus_status.dart';
 import '../logic/fleet_cubit.dart';
 import '../logic/fleet_state.dart';
-import '../models/bus_model.dart';
 import '../widgets/fleet_stats_row.dart';
 import '../widgets/fleet_table.dart';
 import '../widgets/add_bus_dialog.dart';
-import '../widgets/fleet_search_bar.dart';
-import '../widgets/fleet_statistics.dart';
-import '../widgets/fleet_status_filters.dart';
-
-
-
 
 class FleetPage extends StatefulWidget {
   const FleetPage({super.key});
@@ -29,7 +23,6 @@ class _FleetPageState extends State<FleetPage> {
     _searchController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +159,6 @@ class _FleetPageState extends State<FleetPage> {
               const SizedBox(height: 12),
               Expanded(
                 child: FleetTable(
-
                   buses: visibleBuses,
                 ),
               ),
@@ -177,15 +169,3 @@ class _FleetPageState extends State<FleetPage> {
     );
   }
 }
-FleetStatistics(
-buses: state.buses,
-),
-
-const SizedBox(height: 20),
-
-FleetStatusFilters(
-selected: context.read<FleetCubit>().currentFilter,
-onSelected: context.read<FleetCubit>().filterByStatus,
-),
-
-const SizedBox(height: 20),

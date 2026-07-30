@@ -88,11 +88,6 @@ class AdminSidebar extends StatelessWidget {
                   title: Text(item.title),
                   onTap: () => context.go(item.route),
                 );
-                ListTile(
-                  leading: const Icon(Icons.person),
-                  title: const Text("Drivers"),
-                  onTap: () => context.go("/drivers"),
-                );
               },
             ),
           ),

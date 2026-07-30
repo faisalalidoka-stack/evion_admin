@@ -9,6 +9,7 @@ class DriverModel {
   final String assignedBusId;
   final bool online;
   final bool active;
+  String get name => fullName;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 

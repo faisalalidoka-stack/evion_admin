@@ -1,4 +1,5 @@
 import '../models/bus_model.dart';
+import '../../../core/constants/bus_status.dart';
 
 class FleetState {
   final List<BusModel> buses;
@@ -7,7 +8,6 @@ class FleetState {
   final BusStatus? statusFilter;
   final bool? activeFilter;
   final String? errorMessage;
-  final List<BusModel> filteredBuses;
 
   const FleetState({
     this.buses = const [],
@@ -16,9 +16,7 @@ class FleetState {
     this.statusFilter,
     this.activeFilter,
     this.errorMessage,
-    this.filteredBuses = const [],
   });
-
 
   List<BusModel> get filteredBuses {
     final query = searchQuery.trim().toLowerCase();
@@ -41,20 +39,15 @@ class FleetState {
   }
 
   int get totalBuses => buses.length;
-
   int get activeBusesCount => buses.where((b) => b.active).length;
-
   int get runningBusesCount =>
       buses.where((b) => b.status == BusStatus.running).length;
-
   int get maintenanceBusesCount =>
       buses.where((b) => b.status == BusStatus.maintenance).length;
-
   int get offlineBusesCount =>
       buses.where((b) => b.status == BusStatus.offline).length;
 
   FleetState copyWith({
-    List<BusModel>? filteredBuses,
     List<BusModel>? buses,
     bool? loading,
     String? searchQuery,
@@ -66,7 +59,6 @@ class FleetState {
     bool clearError = false,
   }) {
     return FleetState(
-      filteredBuses: filteredBuses ?? this.filteredBuses,
       buses: buses ?? this.buses,
       loading: loading ?? this.loading,
       searchQuery: searchQuery ?? this.searchQuery,

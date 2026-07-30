@@ -42,7 +42,8 @@ class _AssignDriverDialogState extends State<AssignDriverDialog> {
             }
 
             final eligible = state.drivers
-                .where((d) => !d.assigned || d.id == widget.bus.driverId)
+                .where((d) =>
+            d.assignedBusId.isEmpty || d.id == widget.bus.driverId)
                 .toList();
 
             if (eligible.isEmpty) {
@@ -56,7 +57,7 @@ class _AssignDriverDialogState extends State<AssignDriverDialog> {
                   .map(
                     (d) => DropdownMenuItem(
                   value: d.id,
-                  child: Text("${d.name} (${d.phone})"),
+                  child: Text("${d.fullName} (${d.phone})"),
                 ),
               )
                   .toList(),
@@ -75,7 +76,7 @@ class _AssignDriverDialogState extends State<AssignDriverDialog> {
         FilledButton(
           onPressed: _selectedDriverId == null
               ? null
-              : () {
+              : () async {
             final driverCubit = context.read<DriverCubit>();
             final fleetCubit = context.read<FleetCubit>();
 
@@ -85,26 +86,34 @@ class _AssignDriverDialogState extends State<AssignDriverDialog> {
             final previousDriverId = widget.bus.driverId;
             if (previousDriverId.isNotEmpty &&
                 previousDriverId != selected.id) {
-              driverCubit.markAssigned(previousDriverId, false);
+              final DriverModel? previous =
+                  driverCubit.state.drivers.where((d) => d.id == previousDriverId).firstOrNull;
+              if (previous != null) {
+                await driverCubit
+                    .updateDriver(previous.copyWith(assignedBusId: ''));
+              }
             }
 
-            driverCubit.markAssigned(selected.id, true);
+            await driverCubit.updateDriver(
+              selected.copyWith(assignedBusId: widget.bus.id),
+            );
 
-            fleetCubit.assignDriver(
+            await fleetCubit.assignDriver(
               busId: widget.bus.id,
               driverId: selected.id,
-              driverName: selected.name,
+              driverName: selected.fullName,
             );
 
-            Navigator.pop(context);
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  "${selected.name} assigned to ${widget.bus.vehicleNumber}",
+            if (context.mounted) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    "${selected.fullName} assigned to ${widget.bus.vehicleNumber}",
+                  ),
                 ),
-              ),
-            );
+              );
+            }
           },
           child: const Text("Assign"),
         ),

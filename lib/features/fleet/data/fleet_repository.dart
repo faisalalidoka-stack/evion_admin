@@ -1,22 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../core/constants/bus_status.dart';
 import '../models/bus_model.dart';
 
 class FleetRepository {
   final CollectionReference<Map<String, dynamic>> _collection =
   FirebaseFirestore.instance.collection('buses');
 
-  Future<List<BusModel>> getBuses() async {
-    final snapshot = await _collection.orderBy('vehicleNumber').get();
-
-    return snapshot.docs
-        .map((doc) => BusModel.fromMap(doc.id, doc.data()))
-        .toList();
+  Stream<List<BusModel>> streamBuses() {
+    return _collection.orderBy('vehicleNumber').snapshots().map(
+          (snapshot) => snapshot.docs
+          .map((doc) => BusModel.fromMap(doc.id, doc.data()))
+          .toList(),
+    );
   }
 
   Future<void> addBus(BusModel bus) async {
-    // Uses the client-generated id (see AddBusDialog) as the doc ID,
-    // rather than .add(), so it stays consistent with how the dialog builds it.
     await _collection.doc(bus.id).set(bus.toMap());
   }
 
@@ -36,19 +35,19 @@ class FleetRepository {
     await _collection.doc(busId).update({
       'driverId': driverId,
       'driverName': driverName,
-      'updatedAt': DateTime.now(),
+      'updatedAt': Timestamp.now(),
     });
   }
 
   Future<void> updateStatus(String busId, BusStatus status) async {
     await _collection.doc(busId).update({
       'status': status.name,
-      'updatedAt': DateTime.now(),
+      'updatedAt': Timestamp.now(),
     });
   }
 
-  /// One-time helper to push the old dummy fleet into Firestore for testing.
-  /// Safe to call repeatedly — it only writes docs that don't already exist.
+  /// One-time helper to push sample fleet data into Firestore for testing.
+  /// Safe to call repeatedly — only writes if the collection is empty.
   Future<void> seedSampleDataIfEmpty() async {
     final existing = await _collection.limit(1).get();
     if (existing.docs.isNotEmpty) return;
@@ -118,25 +117,5 @@ class FleetRepository {
     }
 
     await batch.commit();
-  }
-  void updateStatus(
-      String busId,
-      String status,
-      ) {
-    final index = _buses.indexWhere((e) => e.id == busId);
-
-    if (index == -1) return;
-
-    final bus = _buses[index];
-
-    _buses[index] = BusModel(
-      id: bus.id,
-      vehicleNumber: bus.vehicleNumber,
-      registration: bus.registration,
-      driver: bus.driver,
-      route: bus.route,
-      capacity: bus.capacity,
-      status: status,
-    );
   }
 }

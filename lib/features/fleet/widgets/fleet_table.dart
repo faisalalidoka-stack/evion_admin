@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/constants/bus_status.dart';
 import '../../drivers/logic/driver_cubit.dart';
 import '../logic/fleet_cubit.dart';
 import '../models/bus_model.dart';
@@ -9,8 +10,6 @@ import 'assign_driver_dialog.dart';
 import 'edit_bus_dialog.dart';
 import 'delete_bus_dialog.dart';
 import 'update_status_dialog.dart';
-
-import 'status_selector_dialog.dart';
 
 class FleetTable extends StatelessWidget {
   final List<BusModel> buses;
@@ -70,19 +69,9 @@ class FleetTable extends StatelessWidget {
                 DataCell(Text(bus.capacity.toString())),
                 DataCell(
                   InkWell(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => BlocProvider.value(
-                          value: context.read<FleetCubit>(),
-                          child: StatusSelectorDialog(
-                            bus: bus,
-                          ),
-                        ),
-                      );
-                    },
+                    onTap: () => _openStatusDialog(context, bus),
                     child: Chip(
-                      label: Text(bus.status),
+                      label: Text(bus.status.label),
                       avatar: CircleAvatar(
                         radius: 5,
                         backgroundColor: statusColor(bus.status),
@@ -139,16 +128,11 @@ class FleetTable extends StatelessWidget {
                             context: context,
                             builder: (_) => BlocProvider.value(
                               value: context.read<FleetCubit>(),
-                              child: DeleteBusDialog(
-                                bus: bus,
-                              ),
+                              child: DeleteBusDialog(bus: bus),
                             ),
                           );
                         },
-                        icon: const Icon(
-                          Icons.delete_outline,
-                          color: Colors.red,
-                        ),
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
                       ),
                     ],
                   ),

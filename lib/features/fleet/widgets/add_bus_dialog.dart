@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/constants/bus_status.dart';
 import '../logic/fleet_cubit.dart';
 import '../models/bus_model.dart';
 
@@ -88,11 +89,9 @@ class _AddBusDialogState extends State<AddBusDialog> {
                     if (v == null || v.isEmpty) {
                       return "Required";
                     }
-
                     if (int.tryParse(v) == null) {
                       return "Invalid number";
                     }
-
                     return null;
                   },
                 ),

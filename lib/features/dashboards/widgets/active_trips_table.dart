@@ -1,10 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../core/constants/trip_status.dart';
+import '../../trips/logic/trip_cubit.dart';
 
 class ActiveTripsTable extends StatelessWidget {
   const ActiveTripsTable({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final activeTrips = context
+        .watch<TripCubit>()
+        .state
+        .trips
+        .where((t) => t.status == TripStatus.inProgress)
+        .toList();
+
+    if (activeTrips.isEmpty) {
+      return const Card(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(
+            "No trips currently in progress.",
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -13,53 +36,23 @@ class ActiveTripsTable extends StatelessWidget {
             DataColumn(label: Text("Bus")),
             DataColumn(label: Text("Driver")),
             DataColumn(label: Text("Route")),
-            DataColumn(label: Text("Passengers")),
             DataColumn(label: Text("Status")),
           ],
-          rows: [
-            DataRow(
+          rows: activeTrips.map((trip) {
+            return DataRow(
               cells: [
-                const DataCell(Text("EV-001")),
-                const DataCell(Text("John")),
-                const DataCell(Text("Kampala → Entebbe")),
-                const DataCell(Text("24")),
+                DataCell(Text(trip.vehicleNumber)),
+                DataCell(Text(trip.driverName)),
+                DataCell(Text(trip.routeName)),
                 DataCell(
                   Chip(
-                    label: const Text("Running"),
+                    label: Text(trip.status.label),
                     backgroundColor: Colors.green.shade100,
                   ),
                 ),
               ],
-            ),
-            DataRow(
-              cells: [
-                const DataCell(Text("EV-007")),
-                const DataCell(Text("Sarah")),
-                const DataCell(Text("Ntinda → CBD")),
-                const DataCell(Text("17")),
-                DataCell(
-                  Chip(
-                    label: const Text("Boarding"),
-                    backgroundColor: Colors.orange.shade100,
-                  ),
-                ),
-              ],
-            ),
-            DataRow(
-              cells: [
-                const DataCell(Text("EV-011")),
-                const DataCell(Text("Moses")),
-                const DataCell(Text("Mukono → Kampala")),
-                const DataCell(Text("31")),
-                DataCell(
-                  Chip(
-                    label: const Text("Running"),
-                    backgroundColor: Colors.green.shade100,
-                  ),
-                ),
-              ],
-            ),
-          ],
+            );
+          }).toList(),
         ),
       ),
     );
